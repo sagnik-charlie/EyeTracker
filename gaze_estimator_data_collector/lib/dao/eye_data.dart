@@ -11,11 +11,13 @@ class MyData {
   String head_euler_y;
   String head_euler_z;
   Point<int> right_eye;
+  List<Point<int>>? rightEyeContour;
+  List<Point<int>>? leftEyeContour;
   Point<int> left_eye;
   String gaze;
 
   MyData({required this.left_cheek, required this.right_cheek,required this.image_data, required this.head_euler_x, required this.head_euler_y,
-  required this.head_euler_z, required this.left_eye, required this.right_eye, required this.gaze});
+  required this.head_euler_z, required this.left_eye,this.rightEyeContour,this.leftEyeContour, required this.right_eye, required this.gaze});
 
   
 }

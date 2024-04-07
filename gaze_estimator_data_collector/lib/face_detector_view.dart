@@ -89,7 +89,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         String head_euler_x='',head_euler_y='', head_euler_z='', left_cheek='',right_cheek='',right_eye='',left_eye='',gaze='';
         Point<int>? rightEye;
         Point<int>? leftEye;
-        
+        List<Point<int>>? rightEye_contours;
+        List<Point<int>>? leftEye_contours;
         if(faces.isNotEmpty && faces[0].leftEyeOpenProbability!>0.2 && faces[0].rightEyeOpenProbability!>0.2){
         
         head_euler_x=faces[0].headEulerAngleX.toString().replaceAll(RegExp(r'Point') , '');
@@ -99,6 +100,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         head_euler_z = faces[0].headEulerAngleZ.toString().replaceAll(RegExp(r'Point') , '');
         //print("\nEye Gaze Landmarks\n");
         faceMap=faces[0].landmarks;
+        contourMap=faces[0].contours;
         faceMap.forEach((key, value) {
           if(key==FaceLandmarkType.leftCheek){
             left_cheek=(value!.position).toString().replaceAll(RegExp(r'Point') , '');
@@ -113,11 +115,19 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
             leftEye=value!.position;
           }
          });
+         contourMap.forEach((key, value) {
+          if(key==FaceContourType.rightEye){
+            rightEye_contours=value!.points;
+          }
+          if(key==FaceContourType.leftEye){
+            leftEye_contours=value!.points;
+          }
+         });
         //print("\n Contours Co-orndinates \n");
         
        // print("\n Smiling Probablity \n");
         
-        eye_data= MyData (left_cheek: left_cheek,right_cheek: right_cheek, image_data:inputImage, head_euler_x:head_euler_x ,left_eye: leftEye!, right_eye: rightEye!, head_euler_y: head_euler_y, head_euler_z: head_euler_z,gaze:gaze);
+        eye_data= MyData (left_cheek: left_cheek,right_cheek: right_cheek, image_data:inputImage, head_euler_x:head_euler_x ,left_eye: leftEye!,rightEyeContour: rightEye_contours,leftEyeContour: leftEye_contours, right_eye: rightEye!, head_euler_y: head_euler_y, head_euler_z: head_euler_z,gaze:gaze);
         //await saveImageAsPNG(pngImage);
         }  
       }

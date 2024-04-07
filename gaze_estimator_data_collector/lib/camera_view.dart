@@ -9,7 +9,7 @@ import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as pth;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import 'package:sensors_plus/sensors_plus.dart';
 import 'dao/eye_data.dart';
 
 class CameraView extends StatefulWidget {
@@ -42,9 +42,12 @@ class _CameraViewState extends State<CameraView> {
   var status;
   List<MyData>? eye_data_list=[];
   int _cameraIndex = -1;
-  double _currentZoomLevel = 1.0;
-  double _minAvailableZoom = 1.0;
-  double _maxAvailableZoom = 1.0;
+  double _gyroX = 0.0; 
+  double _gyroY = 0.0; 
+  double _gyroZ = 0.0; 
+  double _accX = 0.0; 
+  double _accY = 0.0; 
+  double _accZ = 0.0; 
   double _minAvailableExposureOffset = 0.0;
   double _maxAvailableExposureOffset = 0.0;
   double _currentExposureOffset = 0.0;
@@ -62,6 +65,20 @@ class _CameraViewState extends State<CameraView> {
   void initState() {
     super.initState();
     _initialize();
+    gyroscopeEvents.listen((GyroscopeEvent event) { 
+      setState(() { 
+        _gyroX = event.x; 
+        _gyroY = event.y; 
+        _gyroZ = event.z; 
+      }); 
+    });
+  accelerometerEvents.listen((AccelerometerEvent event) { 
+      setState(() { 
+        _accX = event.x; 
+        _accY = event.y; 
+        _accZ = event.z; 
+      }); 
+    }); 
   }
 
   void _initialize() async {
@@ -79,14 +96,21 @@ class _CameraViewState extends State<CameraView> {
         excelData.add(TextCellValue("FaceLeftCheek"));
         excelData.add(TextCellValue("FaceRightCheek"));
         excelData.add(TextCellValue("FacePhotoPath"));
-        //excelData.add(TextCellValue(saved_img_path_rightEye));
-        //excelData.add(TextCellValue(saved_img_path_leftEye));
         excelData.add(TextCellValue("LeftEyePath"));
         excelData.add(TextCellValue("RightEyePath")); 
+        excelData.add(TextCellValue("LeftEyeContours"));
+        excelData.add(TextCellValue("RightEyeContours")); 
+        excelData.add(TextCellValue("LeftEyeLandmark"));
+        excelData.add(TextCellValue("RightEyeLandmark")); 
         excelData.add(TextCellValue("HeadEulerAngleX"));
         excelData.add(TextCellValue("HeadEulerAngleY"));
-     
         excelData.add(TextCellValue("HeadEulerAngleZ"));
+        excelData.add(TextCellValue("Acc_X"));
+        excelData.add(TextCellValue("Acc_Y"));
+        excelData.add(TextCellValue("Acc_Z"));
+        excelData.add(TextCellValue("Gyro_X"));
+        excelData.add(TextCellValue("Gyro_Y"));
+        excelData.add(TextCellValue("Gyro_Z"));
         excelData.add(TextCellValue("Gaze"));  
         sheet!.appendRow(excelData);
     }
@@ -288,11 +312,11 @@ class _CameraViewState extends State<CameraView> {
         return;
       }       
       _controller?.getMinZoomLevel().then((value) {
-        _currentZoomLevel = value;
-        _minAvailableZoom = value;
+       // _currentZoomLevel = value;
+       // _minAvailableZoom = value;
       });
       _controller?.getMaxZoomLevel().then((value) {
-        _maxAvailableZoom = value;
+       // _maxAvailableZoom = value;
       });
       _currentExposureOffset = 0.0;
       _controller?.getMinExposureOffset().then((value) {
@@ -309,7 +333,6 @@ class _CameraViewState extends State<CameraView> {
           widget.onCameraLensDirectionChanged!(camera.lensDirection);
         }
       });
-      
       setState(() {});
     });
   }
@@ -341,8 +364,8 @@ class _CameraViewState extends State<CameraView> {
       _counter++;
     });
   }
-  void _processData() async {
 
+  void _processData() async {
       for (var item in eye_data_list!) {
         Uint8List? nv21Image=await item.image_data.bytes!;
         img.Image? pngImage=await convertNV21toPNG(nv21Image);
@@ -360,11 +383,20 @@ class _CameraViewState extends State<CameraView> {
         //excelData.add(TextCellValue(saved_img_path_leftEye));
         excelData.add(TextCellValue(saved_img_path_leftEye));
         excelData.add(TextCellValue(saved_img_path_rightEye)); 
+        excelData.add(TextCellValue(item.leftEyeContour.toString().replaceAll(RegExp(r'Point') , '')));
+        excelData.add(TextCellValue(item.rightEyeContour.toString().replaceAll(RegExp(r'Point') , '')));
+        excelData.add(TextCellValue(item.left_eye.toString().replaceAll(RegExp(r'Point') , '')));
+        excelData.add(TextCellValue(item.right_eye.toString().replaceAll(RegExp(r'Point') , '')));
         excelData.add(TextCellValue(item.head_euler_x));
         excelData.add(TextCellValue(item.head_euler_y));
      
         excelData.add(TextCellValue(item.head_euler_z));
-     
+        excelData.add(TextCellValue(_accX.toString()));
+        excelData.add(TextCellValue(_accY.toString()));
+        excelData.add(TextCellValue(_accZ.toString()));
+        excelData.add(TextCellValue(_gyroX.toString()));
+        excelData.add(TextCellValue(_gyroY.toString()));
+        excelData.add(TextCellValue(_gyroZ.toString()));
      double gazeX=_random_left+25,gazeY=_random_top+25;
      excelData.add(TextCellValue('($gazeX,$gazeY)'));  
      sheet!.appendRow(excelData);
